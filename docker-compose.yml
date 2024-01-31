@@ -1,0 +1,44 @@
+secrets:
+  github_client:
+    file: ./secrets/github.client.txt
+  github_secret:
+    file: ./secrets/github.secret.txt
+  postgres_password:
+    file: ./secrets/pass.postgresql.txt
+
+services:
+  kotlin-server:
+    image: sosilol-kotlin-web
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USERNAME: postgres
+      POSTGRES_PASSWORD: /run/secrets/postgres_password
+      POSTGRES_DATABASE: sosilol
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      GITHUB_CLIENT_ID: /run/secrets/github_client
+      GITHUB_SECRET: /run/secrets/github_secret
+      GITHUB_REDIRECT_URI: https://example.com/
+    depends_on:
+      - postgres
+      - redis
+    secrets:
+      - github_client
+      - github_secret
+      - postgres_password
+
+  postgres:
+    image: postgres:12.7
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: /run/secrets/postgres_password
+      POSTGRES_DB: sosilol
+    secrets:
+      - postgres_password
+
+  redis:
+    image: redis:7.2
